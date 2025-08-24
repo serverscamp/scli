@@ -263,6 +263,204 @@ scli flavors --format tsv --no-header \
 
 ---
 
+## Limits
+
+Query your account limits with usage and remaining counters. Color rules in the table:
+- **Green** `USED` when `used &lt; remaining`
+- **Yellow** `USED` when `used ≥ remaining` and `used &lt; limit`
+- **Red** `USED` when `used == limit`
+
+**Usage**
+
+```sh
+scli limits [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+            [--fields CSV] [--columns CSV]
+            [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+            [--silent] [--api-key KEY]
+scli limits search &lt;query&gt; [same flags as above]
+```
+
+**Examples**
+
+```sh
+scli limits
+```
+
+```
+ID  TYPE       LIMIT  USED  REMAINING
+──  ─────────  ─────  ────  ─────────
+67  instances      5      1        4
+68  ssh_keys       5      5        0
+```
+
+Sort by type descending, print JSONL without header:
+
+```sh
+scli limits --sort type --order desc --format jsonl --no-header --silent
+```
+
+Request fewer fields and print selected columns:
+
+```sh
+scli limits --fields id,type,limit,used --columns type,used
+```
+
+Search by substring (matches any column):
+
+```sh
+scli limits search ssh
+```
+
+---
+
+## SSH keys
+
+Manage public SSH keys used for instances. The table shows:
+- **PROTECTED** — `Yes` (green) / `No`
+- **DOWNLOAD AVAILABLE** — `Yes` (green) if the private key is stored and can be downloaded; `No (imported)` otherwise
+- **SERVERS** — how many instances currently use the key
+- **CREATED** — `dd/mm/yy HH:MM` (24‑hour)
+
+> Safety rules enforced by API/CLI:
+> - A key **in use by any server** cannot be unprotected or deleted.
+> - A **protected** key cannot be deleted.
+> - When creating/importing, if your **ssh_keys** limit is reached, you’ll get a clear error with a link to raise limits: https://my.serverscamp.com/limits/
+
+**Usage**
+
+```text
+scli ssh-keys list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+                   [--fields CSV] [--columns CSV]
+                   [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+                   [--silent] [--api-key KEY]
+scli ssh-keys search &lt;query&gt; [same flags as above]
+
+scli ssh-keys import   --name NAME [--key 'ssh-rsa AAA...'] [--file PATH]
+scli ssh-keys generate --name NAME [--wait] [--interval SECONDS]
+
+scli ssh-keys protect   --id ID
+scli ssh-keys unprotect --id ID        # fails if key is used by any server
+scli ssh-keys delete    --id ID[,ID...] # fails if protected or used
+scli ssh-keys download  --id ID [--out PATH]
+```
+
+**List**
+
+```sh
+scli ssh-keys list
+```
+
+```
+ID  NAME         FINGERPRINT                                                                PROTECTED  DOWNLOAD AVAILABLE  SERVERS  CREATED
+──  ───────────  ─────────────────────────────────────────────────────────────────────────  ─────────  ──────────────────  ───────  ──────────────
+12  kyka         2048 MD5:b1:b1:f6:72:ea:09:9f:16:a4:f4:ad:b8:b4:10:7b:4d no comment (RSA)  No         No (imported)       0        24/03/25 04:16
+37  kyka key 2   2048 MD5:27:a2:82:f1:37:48:64:9c:72:0a:73:7c:08:e3:ba:9e no comment (RSA)  No         Yes                 1        23/08/25 14:40
+38  kyka key 3   3072 MD5:02:a9:ea:b8:15:4e:24:e3:91:b5:91:22:ac:34:98:b4 kukara4... (RSA)  No         No (imported)       0        23/08/25 14:42
+```
+
+**Import**
+
+```sh
+# from a file
+scli ssh-keys import --name "ed25519-ci" --file ~/.ssh/id_ed25519.pub
+
+# from a literal public key
+scli ssh-keys import --name "laptop" --key "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI.... user@host"
+```
+
+Output:
+
+```
+SSH key "ed25519-ci" imported successfully. ID: 42
+```
+
+**Generate**
+
+```sh
+# enqueue background generation (just show job id)
+scli ssh-keys generate --name "ci-generated"
+
+# wait and show progress with spinner, then print the created key
+scli ssh-keys generate --name "ci-generated" --wait --interval 2
+```
+
+Example (with `--wait`):
+
+```
+ACTION    NAME         JOB ID                                STATUS URL                                   MESSAGE
+────────  ───────────  ────────────────────────────────────  ───────────────────────────────────────────  ───────────────────────────────
+GENERATE  ci-generated  16384511-37ca-4cf9-a539-1af4cda3f5f8  /tasks/16384511-37ca-4cf9-a539-1af4cda3f5f8  SSH key generation job enqueued
+
+Tracking task status... (Ctrl+C to stop)
+
+⠋  40%  running
+⠙  60%  running
+⠹  100% finished
+
+ID  NAME           FINGERPRINT                                                                PROTECTED  DOWNLOAD AVAILABLE  SERVERS  CREATED
+──  ─────────────  ─────────────────────────────────────────────────────────────────────────  ─────────  ──────────────────  ───────  ──────────────
+63  ci-generated   2048 MD5:32:c2:29:01:8b:65:96:18:d2:07:b3:27:63:4f:9f:62 no comment (RSA)  No         Yes                 0        23/08/25 18:43
+
+SSH key created successfully.
+```
+
+**Delete multiple ids**
+
+```sh
+scli ssh-keys delete --id 61,62,63
+```
+
+**Download private key (if available)**
+
+```sh
+scli ssh-keys download --id 63 --out ./ci-generated.key
+chmod 600 ./ci-generated.key
+```
+
+---
+
+## Images
+
+List available OS images. Fields: `id`, `name`, `version`, `short_name`, `distro_family`.
+
+**Usage**
+
+```sh
+scli images list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+                 [--fields CSV] [--columns CSV]
+                 [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+                 [--silent] [--api-key KEY]
+scli images search &lt;query&gt; [same flags as above]
+```
+
+**Examples**
+
+```sh
+scli images list
+```
+
+```
+ID  NAME           VERSION      SHORT_NAME   DISTRO_FAMILY
+──  ─────────────  ───────────  ───────────  ─────────────
+5   Alpine         3.22         alpine3      alpine
+3   CentOS Stream  10           centos10     centos
+2   Debian         12           debian12     debian
+4   Fedora         41           fedora41     fedora
+6   FreeBSD        14.2         freebsd14    freebsd
+1   Ubuntu LTS     24.04        ubuntu24     ubuntu
+7   Windows        server 2025  windows2025  windows
+```
+
+Search by substring:
+
+```sh
+scli images search ubuntu
+```
+
+Output respects `--fields`, `--columns`, and all `--format` options.
+
+---
+
 ## CI usage
 
 Minimal example (GitHub Actions):
