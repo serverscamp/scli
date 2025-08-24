@@ -84,6 +84,31 @@ scli flavors [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
              [--fields CSV] [--columns CSV]
              [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
              [--silent] [--api-key KEY]
+
+scli limits [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+            [--fields CSV] [--columns CSV]
+            [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+            [--silent] [--api-key KEY]
+scli limits search <query> [same flags as above]
+
+scli ssh-keys list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+                   [--fields CSV] [--columns CSV]
+                   [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+                   [--silent] [--api-key KEY]
+scli ssh-keys search <query> [same flags as above]
+
+scli ssh-keys import   --name NAME [--key 'ssh-rsa AAA...'] [--file PATH]
+scli ssh-keys generate --name NAME [--wait] [--interval SECONDS]
+scli ssh-keys protect   --id ID
+scli ssh-keys unprotect --id ID
+scli ssh-keys delete    --id ID[,ID...]
+scli ssh-keys download  --id ID [--out PATH]
+
+scli images list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+                 [--fields CSV] [--columns CSV]
+                 [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+                 [--silent] [--api-key KEY]
+scli images search <query> [same flags as above]
 ```
 
 - `--fields` controls which fields the API is asked to return.
