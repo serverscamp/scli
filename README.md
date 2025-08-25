@@ -455,7 +455,7 @@ scli images list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
                  [--fields CSV] [--columns CSV]
                  [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
                  [--silent] [--api-key KEY]
-scli images search &lt;query&gt; [same flags as above]
+scli images search <query> [same flags as above]
 ```
 
 **Examples**
