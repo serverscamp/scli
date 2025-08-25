@@ -109,6 +109,17 @@ scli images list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
                  [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
                  [--silent] [--api-key KEY]
 scli images search <query> [same flags as above]
+
+scli instances list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+                    [--fields CSV] [--columns CSV]
+                    [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+                    [--silent] [--api-key KEY]
+scli instances search <query> [same flags as above]
+
+scli instances create  --name NAME --flavor ID --image ID --ssh-key ID [--wait] [--interval SECONDS]
+scli instances start   --id ID [--wait true|false] [--interval SECONDS]
+scli instances stop    --id ID [--wait true|false] [--interval SECONDS]
+scli instances delete  --id ID [--wait true|false] [--interval SECONDS]
 ```
 
 - `--fields` controls which fields the API is asked to return.
@@ -483,6 +494,61 @@ scli images search ubuntu
 ```
 
 Output respects `--fields`, `--columns`, and all `--format` options.
+
+---
+
+## Instances
+
+Manage virtual machine instances (list, search, create, start, stop, delete).
+
+**Usage**
+
+```sh
+scli instances list [--page N] [--per-page N] [--sort CSV] [--order asc|desc]
+                    [--fields CSV] [--columns CSV]
+                    [--format table|csv|tsv|json|jsonl] [--no-header] [--no-color]
+                    [--silent] [--api-key KEY]
+scli instances search <query> [same flags as above]
+
+scli instances create  --name NAME --flavor ID --image ID --ssh-key ID [--wait] [--interval SECONDS]
+scli instances start   --id ID [--wait true|false] [--interval SECONDS]
+scli instances stop    --id ID [--wait true|false] [--interval SECONDS]
+scli instances delete  --id ID [--wait true|false] [--interval SECONDS]
+```
+
+**Examples**
+
+- List instances:
+
+```
+ID  NAME         RUNNING      IMAGE       FLAVOR      IPV4          IPV6               CREATED
+──  ───────────  ───────────  ─────────  ─────────   ────────────  ─────────────────  ──────────────
+42  demo-server  Yes          Ubuntu LTS sc-medium   185.236.10.1  2a01:ea05::1       24/08/25 20:46
+43  api-server   provisioning Debian     sc-mini     185.236.10.2  -                  24/08/25 20:50
+```
+
+- Create instance with wait (progress spinner):
+
+```sh
+scli instances create --name "my-server" --flavor 2 --image 1 --ssh-key 12 --wait
+```
+
+- Start / Stop:
+
+```sh
+scli instances start --id 42 --wait true
+scli instances stop --id 42 --wait true
+```
+
+- Delete:
+
+```sh
+scli instances delete --id 42 --wait true
+```
+
+Notes:
+- `RUNNING` shows **green Yes** if running, or **yellow stage** (`in_queue`, `provisioning`, `resizing`, `configuring`) until fully created.
+- `FLAVOR` shows green `sc` prefix when colors are enabled.
 
 ---
 
